@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  rid.h                                                                */
+/*  editor_native_shader_source_visualizer.h                             */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,49 +28,23 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef RID_H
-#define RID_H
+#ifndef EDITOR_NATIVE_SHADER_SOURCE_VISUALIZER_H
+#define EDITOR_NATIVE_SHADER_SOURCE_VISUALIZER_H
 
-#include "core/typedefs.h"
+#include "scene/gui/dialogs.h"
+#include "scene/gui/tab_container.h"
 
-class RID_AllocBase;
+class EditorNativeShaderSourceVisualizer : public AcceptDialog {
+	GDCLASS(EditorNativeShaderSourceVisualizer, AcceptDialog)
+	TabContainer *versions = nullptr;
 
-class RID {
-	friend class RID_AllocBase;
-	uint64_t _id = 0;
+	void _inspect_shader(RID p_shader);
+
+protected:
+	static void _bind_methods();
 
 public:
-	_ALWAYS_INLINE_ bool operator==(const RID &p_rid) const {
-		return _id == p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator<(const RID &p_rid) const {
-		return _id < p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator<=(const RID &p_rid) const {
-		return _id <= p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator>(const RID &p_rid) const {
-		return _id > p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator>=(const RID &p_rid) const {
-		return _id >= p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator!=(const RID &p_rid) const {
-		return _id != p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool is_valid() const { return _id != 0; }
-	_ALWAYS_INLINE_ bool is_null() const { return _id == 0; }
-
-	_ALWAYS_INLINE_ uint32_t get_local_index() const { return _id & 0xFFFFFFFF; }
-
-	static _ALWAYS_INLINE_ RID from_uint64(uint64_t p_id) {
-		RID _rid;
-		_rid._id = p_id;
-		return _rid;
-	}
-	_ALWAYS_INLINE_ uint64_t get_id() const { return _id; }
-
-	_ALWAYS_INLINE_ RID() {}
+	EditorNativeShaderSourceVisualizer();
 };
 
-#endif // RID_H
+#endif // EDITOR_NATIVE_SHADER_SOURCE_VISUALIZER_H

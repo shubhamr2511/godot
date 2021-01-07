@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  rid.h                                                                */
+/*  editor_native_shader_source_visualizer.cpp                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,49 +28,45 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef RID_H
-#define RID_H
+#include "editor_native_shader_source_visualizer.h"
 
-#include "core/typedefs.h"
+#include "scene/gui/text_edit.h"
 
-class RID_AllocBase;
-
-class RID {
-	friend class RID_AllocBase;
-	uint64_t _id = 0;
-
-public:
-	_ALWAYS_INLINE_ bool operator==(const RID &p_rid) const {
-		return _id == p_rid._id;
+void EditorNativeShaderSourceVisualizer::_inspect_shader(RID p_shader) {
+	if (versions) {
+		memdelete(versions);
+		versions = nullptr;
 	}
-	_ALWAYS_INLINE_ bool operator<(const RID &p_rid) const {
-		return _id < p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator<=(const RID &p_rid) const {
-		return _id <= p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator>(const RID &p_rid) const {
-		return _id > p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator>=(const RID &p_rid) const {
-		return _id >= p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool operator!=(const RID &p_rid) const {
-		return _id != p_rid._id;
-	}
-	_ALWAYS_INLINE_ bool is_valid() const { return _id != 0; }
-	_ALWAYS_INLINE_ bool is_null() const { return _id == 0; }
 
-	_ALWAYS_INLINE_ uint32_t get_local_index() const { return _id & 0xFFFFFFFF; }
+	RS::ShaderNativeSourceCode nsc = RS::get_singleton()->shader_get_native_source_code(p_shader);
 
-	static _ALWAYS_INLINE_ RID from_uint64(uint64_t p_id) {
-		RID _rid;
-		_rid._id = p_id;
-		return _rid;
+	versions = memnew(TabContainer);
+	versions->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	versions->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	for (int i = 0; i < nsc.versions.size(); i++) {
+		TabContainer *vtab = memnew(TabContainer);
+		vtab->set_name("Version " + itos(i));
+		vtab->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+		vtab->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+		versions->add_child(vtab);
+		for (int j = 0; j < nsc.versions[i].stages.size(); j++) {
+			TextEdit *vtext = memnew(TextEdit);
+			vtext->set_readonly(true);
+			vtext->set_name(nsc.versions[i].stages[j].name);
+			vtext->set_text(nsc.versions[i].stages[j].code);
+			vtext->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+			vtext->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+			vtab->add_child(vtext);
+		}
 	}
-	_ALWAYS_INLINE_ uint64_t get_id() const { return _id; }
+	add_child(versions);
+	popup_centered_ratio();
+}
 
-	_ALWAYS_INLINE_ RID() {}
-};
-
-#endif // RID_H
+void EditorNativeShaderSourceVisualizer::_bind_methods() {
+	ClassDB::bind_method("_inspect_shader", &EditorNativeShaderSourceVisualizer::_inspect_shader);
+}
+EditorNativeShaderSourceVisualizer::EditorNativeShaderSourceVisualizer() {
+	add_to_group("_native_shader_source_visualizer");
+	set_title(TTR("Native Shader Source Inspector"));
+}
